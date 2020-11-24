@@ -1,0 +1,68 @@
+import java.text.SimpleDateFormat
+
+plugins {
+    id "java-library"
+    id "idea"
+    id "eclipse"
+    id 'net.nemerosa.versioning' version '2.8.2'
+    id 'jacoco'
+}
+
+group = 'io.github.andyalvarezdev'
+version = '1.0.0-SNAPSHOT'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+
+ext.moduleName = 'io.github.andyalvarezdev.jacksum'
+ext.revision = versioning.info.build
+ext.buildJDK = "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})".toString()
+
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/io.github.andyalvarezdev.jacksum']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+compileJava {
+    inputs.property("moduleName", moduleName)
+}
+
+jar {
+    manifest {
+        attributes('Built-By'       : System.getProperty('user.name'),
+                'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
+                'Automatic-Module-Name': 'io.github.andyalvarezdev.jacksum',
+                'Build-Revision' : revision,
+                'Build-Version'  : version,
+                'Build-Jdk'      : buildJDK)
+    }
+}
+
+task jarSources(type:Jar){
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+javadoc {
+    inputs.property("moduleName", moduleName)
+    doFirst {
+        options.addStringOption('-module-path', classpath.asPath )
+        options.addStringOption("-add-exports", "java.base/jdk.internal.access=io.github.andyalvarezdev.jacksum")
+        options.addStringOption("-add-exports", "java.base/jdk.internal.misc=io.github.andyalvarezdev.jacksum")
+    }
+}
+
+task javadocJar(type: Jar) {
+    archiveVersion = 'javadoc'
+    from javadoc
+}
